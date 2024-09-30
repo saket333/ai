@@ -1,0 +1,60 @@
+from collections import deque
+
+class State:
+    def __init__(self, stacks):
+        self.stacks = stacks
+
+    def __str__(self):
+        return str(self.stacks)
+
+    def is_goal(self, goal):
+        return self.stacks == goal.stacks
+
+    def get_possible_moves(self):
+        moves = []
+        for i, stack in enumerate(self.stacks):
+            if stack:  # If there are blocks in the current stack
+                top_block = stack[-1]
+                for j, other_stack in enumerate(self.stacks):
+                    if i != j:  # Can't move to the same stack
+                        new_stacks = [s[:] for s in self.stacks]  # Create a copy of stacks
+                        new_stacks[i] = new_stacks[i][:-1]  # Remove the top block from current stack
+                        new_stacks[j].append(top_block)  # Add the block to the other stack
+                        moves.append((State(new_stacks), f'Move {top_block} from stack {i} to stack {j}'))
+        return moves
+
+def bfs(initial_state, goal_state):
+    queue = deque([(initial_state, [])])  # Queue holds pairs of (state, path)
+    visited = set()
+
+    while queue:
+        current_state, path = queue.popleft()
+        
+        if current_state.is_goal(goal_state):
+            return path  # Return the path to the goal
+
+        visited.add(tuple(map(tuple, current_state.stacks)))  # Use tuples to make stacks hashable
+
+        for next_state, move in current_state.get_possible_moves():
+            if tuple(map(tuple, next_state.stacks)) not in visited:
+                visited.add(tuple(map(tuple, next_state.stacks)))
+                queue.append((next_state, path + [move]))  # Add the new state and path to the queue
+
+    return None  # Return None if no solution is found
+
+# Example usage
+if __name__ == "__main__":
+    initial_stacks = [[1, 2], [3], []]  # Initial state of the stacks
+    goal_stacks = [[], [3], [1, 2]]  # Goal state
+
+    initial_state = State(initial_stacks)
+    goal_state = State(goal_stacks)
+
+    solution = bfs(initial_state, goal_state)
+
+    if solution:
+        print("Solution found:")
+        for move in solution:
+            print(move)
+    else:
+        print("No solution found.")
