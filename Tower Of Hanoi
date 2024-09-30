@@ -1,0 +1,22 @@
+class TowerOfHanoi:
+    def __init__(self, n):  # Fix: Add double underscores for __init__
+        self.n = n
+
+    def solve(self):
+        self._move_disks(self.n, 'A', 'B', 'C')
+
+    def _move_disks(self, n, source, auxiliary, destination):
+        if n == 1:
+            self._print_move(1, source, destination)
+            return
+        self._move_disks(n - 1, source, destination, auxiliary)
+        self._print_move(n, source, destination)
+        self._move_disks(n - 1, auxiliary, source, destination)
+
+    def _print_move(self, disk, source, destination):
+        print(f"Move disk {disk} from {source} to {destination}")
+
+if __name__ == "__main__":
+    n = 3
+    hanoi = TowerOfHanoi(n)
+    hanoi.solve()
