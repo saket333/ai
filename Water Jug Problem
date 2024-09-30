@@ -1,0 +1,48 @@
+from collections import deque
+
+def is_measurable(m, n, d):
+    if d % gcd(m, n) != 0:
+        return False
+    return d <= max(m, n)
+
+def gcd(a, b):
+    while b:
+        a, b = b, a % b
+    return a
+
+def water_jug_solver_simple(m, n, d):
+    if not is_measurable(m, n, d):
+        print("It is not possible to measure the desired amount.")
+        return
+    
+    visited = set()
+    queue = deque([(0, 0)])
+    
+    while queue:
+        jug1, jug2 = queue.popleft()
+        
+        if jug1 == d or jug2 == d:
+            print(f"Solution found: Jug1 = {jug1} liters, Jug2 = {jug2} liters")
+            return
+        
+        if (jug1, jug2) in visited:
+            continue
+        
+        visited.add((jug1, jug2))
+        
+        queue.append((m, jug2))
+        queue.append((jug1, n))
+        queue.append((0, jug2))
+        queue.append((jug1, 0))
+        pour_to_jug2 = min(jug1, n - jug2)
+        queue.append((jug1 - pour_to_jug2, jug2 + pour_to_jug2))
+        pour_to_jug1 = min(jug2, m - jug1)
+        queue.append((jug1 + pour_to_jug1, jug2 - pour_to_jug1))
+    
+    print("It is not possible to measure the desired amount.")
+
+if __name__ == "__main__":
+    m = 5
+    n = 3
+    d = 4
+    water_jug_solver_simple(m, n, d)
