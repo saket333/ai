@@ -1,0 +1,92 @@
+from collections import deque
+
+class State:
+    def __init__(self, missionaries, cannibals, boat, missionaries_right, cannibals_right):
+        self.missionaries = missionaries  # Missionaries on the left side
+        self.cannibals = cannibals        # Cannibals on the left side
+        self.boat = boat                  # 1 if the boat is on the left, 0 if on the right
+        self.missionaries_right = missionaries_right  # Missionaries on the right side
+        self.cannibals_right = cannibals_right        # Cannibals on the right side
+
+    # Check if the current state is valid (no more cannibals than missionaries on either side)
+    def is_valid(self):
+        if self.missionaries < 0 or self.missionaries_right < 0 or self.cannibals < 0 or self.cannibals_right < 0:
+            return False
+        if (self.missionaries > 0 and self.missionaries < self.cannibals):
+            return False  # Left side check
+        if (self.missionaries_right > 0 and self.missionaries_right < self.cannibals_right):
+            return False  # Right side check
+        return True
+
+    # Check if the current state is the goal state (all missionaries and cannibals on the right side)
+    def is_goal(self):
+        return self.missionaries == 0 and self.cannibals == 0 and self.boat == 0
+
+    # Generate all possible next states
+    def get_successors(self):
+        successors = []
+        if self.boat == 1:  # If the boat is on the left side, move people to the right
+            possible_moves = [
+                (1, 0), (2, 0), (0, 1), (0, 2), (1, 1)  # 1 missionary, 2 missionaries, 1 cannibal, 2 cannibals, 1 missionary + 1 cannibal
+            ]
+            for move in possible_moves:
+                new_state = State(
+                    self.missionaries - move[0],
+                    self.cannibals - move[1],
+                    0,
+                    self.missionaries_right + move[0],
+                    self.cannibals_right + move[1]
+                )
+                if new_state.is_valid():
+                    successors.append(new_state)
+        else:  # If the boat is on the right side, move people to the left
+            possible_moves = [
+                (1, 0), (2, 0), (0, 1), (0, 2), (1, 1)  # Similar moves, but in reverse
+            ]
+            for move in possible_moves:
+                new_state = State(
+                    self.missionaries + move[0],
+                    self.cannibals + move[1],
+                    1,
+                    self.missionaries_right - move[0],
+                    self.cannibals_right - move[1]
+                )
+                if new_state.is_valid():
+                    successors.append(new_state)
+        return successors
+
+    # Custom string representation to print the state
+    def __repr__(self):
+        return f"({self.missionaries}, {self.cannibals}, {self.boat}, {self.missionaries_right}, {self.cannibals_right})"
+
+# Solve the Missionaries and Cannibals problem using Breadth-First Search (BFS)
+def solve_missionaries_cannibals():
+    start = State(3, 3, 1, 0, 0)  # Starting state: 3 missionaries, 3 cannibals on the left, boat on the left
+    queue = deque([start])  # BFS queue
+    visited = set()  # To track visited states
+    parent = {start: None}  # To track the path
+
+    while queue:
+        current_state = queue.popleft()
+
+        if current_state.is_goal():
+            # If we reached the goal, reconstruct the path
+            path = []
+            while current_state:
+                path.append(current_state)
+                current_state = parent[current_state]
+            path.reverse()
+            for step in path:
+                print(step)
+            return
+
+        visited.add(current_state)
+        for successor in current_state.get_successors():
+            if successor not in visited and successor not in queue:
+                parent[successor] = current_state
+                queue.append(successor)
+
+    print("No solution found.")
+
+if __name__ == "__main__":
+    solve_missionaries_cannibals()
