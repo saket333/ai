@@ -1,0 +1,56 @@
+from queue import PriorityQueue
+
+# A* Algorithm
+def a_star(start, goal, graph, h):
+    open_list = PriorityQueue()
+    open_list.put((0, start))
+    came_from = {start: None}
+    g_score = {start: 0}
+
+    while not open_list.empty():
+        current = open_list.get()[1]
+
+        if current == goal:
+            return reconstruct_path(came_from, current)
+
+        for neighbor, cost in graph[current]:
+            tentative_g_score = g_score[current] + cost
+
+            if neighbor not in g_score or tentative_g_score < g_score[neighbor]:
+                g_score[neighbor] = tentative_g_score
+                f_score = tentative_g_score + h[neighbor]
+                open_list.put((f_score, neighbor))
+                came_from[neighbor] = current
+
+    return None  # No path found
+
+# Reconstructs the path from start to goal
+def reconstruct_path(came_from, current):
+    total_path = [current]
+    while current in came_from and came_from[current] is not None:
+        current = came_from[current]
+        total_path.append(current)
+    return total_path[::-1]
+
+# Example usage
+if __name__ == "__main__":
+    # Graph represented as adjacency list (node: [(neighbor, cost)])
+    graph = {
+        'A': [('B', 1), ('C', 3)],
+        'B': [('D', 1), ('E', 4)],
+        'C': [('F', 2)],
+        'D': [('G', 2)],
+        'E': [('G', 1)],
+        'F': [('G', 3)],
+        'G': []
+    }
+
+    # Heuristic values for each node (estimated cost to goal)
+    h = {
+        'A': 6, 'B': 4, 'C': 4, 'D': 2, 'E': 2, 'F': 3, 'G': 0
+    }
+
+    start = 'A'
+    goal = 'G'
+    path = a_star(start, goal, graph, h)
+    print("Path:", path)
